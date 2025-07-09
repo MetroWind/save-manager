@@ -16,15 +16,6 @@ if(APPLE)
   set(CMAKE_CXX_FLAGS "-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1")
 endif()
 
-
-include(FetchContent)
-FetchContent_Declare(
-  libmw
-  GIT_REPOSITORY https://github.com/MetroWind/libmw.git
-)
-
-FetchContent_MakeAvailable(libmw)
-
 find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
 qt_standard_project_setup()
 
@@ -33,16 +24,16 @@ set(SOURCE_FILES
     src/main_window.cpp
     src/data.hpp
     src/data.cpp
+    src/app.hpp
+    src/app.cpp
 )
 
 set(LIBS
-  mw::mw
   Qt6::Widgets
   Qt6::Sql
 )
 
 set(INCLUDES
-  ${libmw_SOURCE_DIR}/includes
 )
 
 qt_add_executable(hello ${SOURCE_FILES} src/main.cpp)
@@ -61,6 +52,7 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${Qt6_ROOT}/bin/Qt6Core.dll
     ${Qt6_ROOT}/bin/Qt6Gui.dll
+    ${Qt6_ROOT}/bin/Qt6Sql.dll
     ${Qt6_ROOT}/bin/Qt6Widgets.dll
     $<TARGET_FILE_DIR:hello>
   )

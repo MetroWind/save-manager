@@ -1,13 +1,13 @@
-#include <QtWidgets>
+#include <iostream>
 
-#include "main_window.hpp"
+#include <windows.h>
+
+#include "app.hpp"
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
-
-    MainWindow window;
-    window.show();
-
-    return app.exec();
+    std::cerr << "Starting..." << std::endl;
+    MessageBox( 0, L"Press OK", L"Hi", MB_SETFOREGROUND );
+    App app;
+    return app.run(argc, argv);
 }
