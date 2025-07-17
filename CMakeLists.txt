@@ -22,6 +22,12 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/zlib-ng/minizip-ng.git
   GIT_TAG 4.0.10
 )
+FetchContent_Declare(
+  ryml
+  GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git
+  GIT_TAG v0.9.0
+  GIT_SHALLOW FALSE  # ensure submodules are checked out
+)
 
 set(MZ_COMPAT OFF)
 set(MZ_ZLIB ON)
@@ -45,7 +51,7 @@ set(MZ_BUILD_UNIT_TESTS OFF)
 set(MZ_BUILD_FUZZ_TESTS OFF)
 set(MZ_CODE_COVERAGE OFF)
 
-FetchContent_MakeAvailable(minizip)
+FetchContent_MakeAvailable(minizip ryml)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
 qt_standard_project_setup()
@@ -73,6 +79,7 @@ set(LIBS
   MINIZIP::minizip
   Qt6::Widgets
   Qt6::Sql
+  ryml::ryml
 )
 
 set(INCLUDES
@@ -80,6 +87,8 @@ set(INCLUDES
 )
 
 qt_add_executable(hello ${SOURCE_FILES} src/main.cpp)
+message("$<CONFIG:Debug>")
+target_compile_definitions(hello PRIVATE "DEBUG=$<CONFIG:Debug>")
 set_property(TARGET hello PROPERTY CXX_STANDARD 23)
 set_property(TARGET hello PROPERTY COMPILE_WARNING_AS_ERROR TRUE)
 target_link_libraries(hello PRIVATE ${LIBS})

@@ -5,6 +5,25 @@
 
 #include "utils.hpp"
 
+void msgBox(QMessageBox::Icon icon, const char* msg)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(icon);
+    switch(icon)
+    {
+    case::QMessageBox::Icon::Critical:
+        msgBox.setText("Error!");
+        break;
+    case::QMessageBox::Icon::Warning:
+        msgBox.setText("Warning!");
+        break;
+    default:
+    }
+    msgBox.setInformativeText(msg);
+    msgBox.exec();
+}
+
+
 // @brief Expands common path shortcuts (~ on Unix, %VAR% on Windows)
 // cross-platform. This is written by Gemini with some manual changes.
 std::string expandPath(std::string_view path)

@@ -1,22 +1,39 @@
 #include <exception>
 #include <iostream>
-#include <nl_types.h>
-#include <stdexcept>
+
+#if _WIN32
+#include <windows.h>
+#endif
+
+#include <QCoreApplication>
 
 #include "app.hpp"
 #include "utils.hpp"
 
 int main(int argc, char *argv[])
 {
-    std::cerr << "Starting..." << std::endl;
     App app;
     try
     {
-        int code = app.run(argc, argv);
+        app.run(argc, argv);
     }
     catch(const std::exception& e)
     {
-        msgBox(QMessageBox::Icon::Critical, e.what());
+        if(QCoreApplication::instance() == nullptr ||
+           QCoreApplication::startingUp())
+        {
+#if _WIN32
+            MessageBox(0, e.what(), "Error", 0);
+#else
+            std::cerr << "Error: " << e.what() << std::endl;
+#endif
+        }
+        else
+        {
+            msgBox(QMessageBox::Icon::Critical, e.what());
+        }
         return 1;
     }
+
+    return 0;
 }

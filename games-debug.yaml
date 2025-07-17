@@ -1,0 +1,13 @@
+test:
+  type: single-save
+  name: Test
+  save-dir: test-game
+  save-files:
+    - savedata.txt
+
+wo3u:
+  type: single-save
+  name: Warriors Orochi 3 Ultimate
+  save-dir: "%USERPROFILE%/Documents/KoeiTecmo/WARRIORS OROCHI 3 Ultimate/SAVEDATA"
+  save-files:
+    - SAVEDATA.BIN

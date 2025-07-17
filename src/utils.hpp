@@ -7,23 +7,7 @@
 
 #include <QMessageBox>
 
-inline void msgBox(QMessageBox::Icon icon, const char* msg)
-{
-    QMessageBox msgBox;
-    msgBox.setIcon(icon);
-    switch(icon)
-    {
-    case::QMessageBox::Icon::Critical:
-        msgBox.setText("Error!");
-        break;
-    case::QMessageBox::Icon::Warning:
-        msgBox.setText("Warning!");
-        break;
-    default:
-    }
-    msgBox.setDetailedText(msg);
-    msgBox.exec();
-}
+void msgBox(QMessageBox::Icon icon, const char* msg);
 
 class Warning : public std::exception
 {

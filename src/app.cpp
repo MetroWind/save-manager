@@ -1,11 +1,8 @@
-#include <array>
-#include <exception>
 #include <memory>
 #include <filesystem>
-#include <iostream>
 #include <stdexcept>
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QtWidgets>
 
 #include "app.hpp"
@@ -13,16 +10,10 @@
 #include "models.hpp"
 #include "save_store.hpp"
 #include "game.hpp"
-#include "utils.hpp"
 
 namespace fs = std::filesystem;
 
-fs::path App::dataDir() const
-{
-    return "data";
-}
-
-int App::run(int argc, char** argv)
+void App::run(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
@@ -37,9 +28,15 @@ int App::run(int argc, char** argv)
         }
     }
 
-    std::array<std::string_view, 1> files = {"savedata.txt"};
     std::unique_ptr<GameInterface> the_game =
-        std::make_unique<GameWithSingleSave>("Test", "test", "test-game", files);
+        GameInterface::createFromDefinition(
+            GameDefinition::loadFromYAML(configPath())[0]);
+
+    if(the_game == nullptr)
+    {
+        throw std::runtime_error("Failed to load game.");
+    }
+
     game = the_game.get();
     model_active_save = new ActiveSaveModel(std::move(the_game));
     std::unique_ptr<SaveStoreInterface> the_store =
@@ -49,6 +46,7 @@ int App::run(int argc, char** argv)
     model_stored_save = new StoredSaveModel(std::move(the_store), "test");
     MainWindow window(*model_active_save, *model_stored_save);
     main_window = &window;
+    window.setGameName(game->name().c_str());
 
     QObject::connect(
         &main_window->midToolbar(), &CenteredToolbar::actionTriggered,
@@ -66,7 +64,7 @@ int App::run(int argc, char** argv)
         &main_window->panelRight().listView(), SLOT(edit(const QModelIndex&)));
 
     window.show();
-    return app.exec();
+    app.exec();
 }
 
 void App::storeActiveSave() const
@@ -129,19 +127,16 @@ void App::onRightToolbarBtnClick(QAction* action)
     }
 }
 
-std::string App::ensureAndGetDBPath() const
+fs::path App::dataDir() const
 {
-    // Locate the data dir
-    fs::path exe_dir = QCoreApplication::applicationDirPath().toStdString();
-    fs::path data_dir = exe_dir / "data";
-    if(!fs::exists(data_dir))
-    {
-        if(!fs::create_directory(data_dir))
-        {
-            throw std::runtime_error("Failed to create data dir.");
-        }
-    }
-    return (data_dir / "data.db").string();
+#ifdef _WIN32
+    return fs::path(QCoreApplication::applicationDirPath().toStdString()) /
+        "data";
+#elif DEBUG
+    return "data";
+#else
+    return expandPath("~/.config/simple-save-manager/data");
+#endif
 }
 
 fs::path App::configPath() const
@@ -149,8 +144,8 @@ fs::path App::configPath() const
 #ifdef _WIN32
     return fs::path(QCoreApplication::applicationDirPath().toStdString()) /
         "games.yaml";
-#elif defined(DEBUG)
-    return "games.yaml";
+#elif DEBUG
+    return "games-debug.yaml";
 #else
     return expandPath("~/.config/simple-save-manager/games.yaml");
 #endif

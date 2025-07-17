@@ -68,6 +68,7 @@ public:
     const LabeledListView& panelRight() const { return *panel_right; }
     const CenteredToolbar& midToolbar() const { return *mid_column; }
     const CenteredToolbar& rightToolbar() const { return *right_bar; }
+    void setGameName(const char* name);
 
 private:
     LabeledListView* panel_left;

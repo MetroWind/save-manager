@@ -15,8 +15,7 @@ class App : public QObject
     Q_OBJECT
 
 public:
-    std::filesystem::path dataDir() const;
-    int run(int argc, char** argv);
+    void run(int argc, char *argv[]);
 
     // Stores the selected active save.
     void storeActiveSave() const;
@@ -31,7 +30,7 @@ private slots:
     void onRightToolbarBtnClick(QAction* action);
 
 private:
-    std::string ensureAndGetDBPath() const;
+    std::filesystem::path dataDir() const;
     std::filesystem::path configPath() const;
 
     MainWindow* main_window = nullptr;

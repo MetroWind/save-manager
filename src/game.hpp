@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include <span>
 #include <string>
 #include <string_view>
@@ -18,11 +19,28 @@ struct ActiveSave
     Time time;
 };
 
+enum class GameType
+{
+    SINGLE_SAVE,
+};
+
+struct GameDefinition
+{
+    std::string name;
+    std::string short_name;
+    std::string save_dir;
+    std::vector<std::string> files;
+    GameType type;
+
+    static std::vector<GameDefinition> loadFromYAML(
+        const std::filesystem::path& filename);
+};
+
 class GameInterface
 {
 public:
     virtual ~GameInterface() = default;
-    virtual std::string_view name() const = 0;
+    virtual const std::string& name() const = 0;
     // Return a short and filesystem-friendly name of the game.
     virtual const std::string& shortName() const = 0;
 
@@ -32,6 +50,10 @@ public:
     // Get all active saves, ordered from old to new;
     virtual std::vector<ActiveSave> saves() const = 0;
     virtual size_t saveCount() const = 0;
+
+    static std::unique_ptr<GameInterface>
+    createFromDefinition(const GameDefinition& def);
+
 };
 
 class GameWithSingleSave : public GameInterface
@@ -39,10 +61,10 @@ class GameWithSingleSave : public GameInterface
 public:
     GameWithSingleSave(std::string_view name, std::string_view short_name,
                        std::string_view save_dir,
-                       std::span<std::string_view> files);
+                       std::span<const std::string> files);
     ~GameWithSingleSave() override = default;
 
-    std::string_view name() const override { return game_name; }
+    const std::string& name() const override { return game_name; }
     const std::string& shortName() const override { return short_name; }
     std::filesystem::path getSaveDir() const override { return save_dir; }
     std::vector<ActiveSave> saves() const override;
