@@ -1,35 +1,136 @@
+#include <array>
 #include <exception>
 #include <memory>
 #include <filesystem>
 #include <iostream>
+#include <stdexcept>
 
 #include <QCoreApplication>
 #include <QtWidgets>
 
 #include "app.hpp"
 #include "main_window.hpp"
-#include "data.hpp"
+#include "models.hpp"
+#include "save_store.hpp"
+#include "game.hpp"
+#include "utils.hpp"
+
+namespace fs = std::filesystem;
+
+fs::path App::dataDir() const
+{
+    return "data";
+}
 
 int App::run(int argc, char** argv)
 {
     QApplication app(argc, argv);
 
-    MainWindow window;
-    window.show();
-
-    std::unique_ptr<DataSource> data =
-        DataSource::create(ensureAndGetDBPath().c_str());
-    if(data == nullptr)
+    fs::path data_dir = dataDir();
+    if(!fs::exists(dataDir()))
     {
-        throw std::runtime_error("Failed to open database");
+        if(!fs::create_directories(data_dir))
+        {
+            throw std::runtime_error(
+                std::string("Failed to create data directory at ") +
+                data_dir.string());
+        }
     }
 
+    std::array<std::string_view, 1> files = {"savedata.txt"};
+    std::unique_ptr<GameInterface> the_game =
+        std::make_unique<GameWithSingleSave>("Test", "test", "test-game", files);
+    game = the_game.get();
+    model_active_save = new ActiveSaveModel(std::move(the_game));
+    std::unique_ptr<SaveStoreInterface> the_store =
+        std::make_unique<SaveStoreFSSQlite>(data_dir.string());
+    store = the_store.get();
+
+    model_stored_save = new StoredSaveModel(std::move(the_store), "test");
+    MainWindow window(*model_active_save, *model_stored_save);
+    main_window = &window;
+
+    QObject::connect(
+        &main_window->midToolbar(), &CenteredToolbar::actionTriggered,
+        this, &App::onMidToolbarBtnClick);
+
+    QObject::connect(
+        &main_window->rightToolbar(), &CenteredToolbar::actionTriggered,
+        this, &App::onRightToolbarBtnClick);
+
+    // When a save is stored, trigger edit to edit the title. Not sure
+    // why SIGNAL and SLOT have to be used here but on the other
+    // connections...
+    QObject::connect(
+        this, SIGNAL(saveStored(const QModelIndex&)),
+        &main_window->panelRight().listView(), SLOT(edit(const QModelIndex&)));
+
+    window.show();
     return app.exec();
+}
+
+void App::storeActiveSave() const
+{
+    auto index = main_window->selectedActiveSave();
+    if(!index.has_value()) return;
+    ActiveSave save = game->saves()[*index];
+    store->storeSave(*game, save, "New save");
+    emit model_stored_save->dataChanged(
+        model_stored_save->index(0, 0),
+        model_stored_save->index(model_stored_save->rowCount(), 0));
+    emit saveStored(model_stored_save->index(0, 0));
+}
+
+void App::restoreFromStoredSave() const
+{
+    auto index = main_window->selectedStoredSave();
+    if(!index.has_value()) return;
+    StoredSave stored_save = store->listSaves(game->shortName())[*index];
+    store->loadSave(stored_save, game->getSaveDir().c_str());
+    model_active_save->reload();
+    emit model_active_save->dataChanged(
+        model_active_save->index(0, 0),
+        model_active_save->index(model_active_save->rowCount(), 0));
+
+}
+
+void App::deleteStoredSave() const
+{
+    auto index = main_window->selectedStoredSave();
+    if(!index.has_value()) return;
+
+    const int deletion_count = 1;
+
+    StoredSave stored_save = store->listSaves(game->shortName())[*index];
+    store->deleteSave(std::move(stored_save));
+    emit model_stored_save->dataChanged(
+        model_stored_save->index(0, 0),
+        model_stored_save->index(model_stored_save->rowCount() +
+                                 deletion_count, 0));
+}
+
+void App::onMidToolbarBtnClick(QAction* action)
+{
+    if(action->objectName() == MainWindow::ACTION_STORE)
+    {
+        storeActiveSave();
+    }
+    else if(action->objectName() == MainWindow::ACTION_RESTORE)
+    {
+        restoreFromStoredSave();
+    }
+}
+
+void App::onRightToolbarBtnClick(QAction* action)
+{
+    if(action->objectName() == MainWindow::ACTION_DELETE_STORED)
+    {
+        deleteStoredSave();
+    }
 }
 
 std::string App::ensureAndGetDBPath() const
 {
-    namespace fs = std::filesystem;
     // Locate the data dir
     fs::path exe_dir = QCoreApplication::applicationDirPath().toStdString();
     fs::path data_dir = exe_dir / "data";
@@ -41,4 +142,16 @@ std::string App::ensureAndGetDBPath() const
         }
     }
     return (data_dir / "data.db").string();
+}
+
+fs::path App::configPath() const
+{
+#ifdef _WIN32
+    return fs::path(QCoreApplication::applicationDirPath().toStdString()) /
+        "games.yaml";
+#elif defined(DEBUG)
+    return "games.yaml";
+#else
+    return expandPath("~/.config/simple-save-manager/games.yaml");
+#endif
 }

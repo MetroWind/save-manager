@@ -51,15 +51,22 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
 qt_standard_project_setup()
 
 set(SOURCE_FILES
-    src/main_window.hpp
-    src/main_window.cpp
-    src/data.hpp
-    src/data.cpp
-    src/app.hpp
     src/app.cpp
+    src/app.hpp
+    src/data.cpp
+    src/data.hpp
+    src/game.cpp
+    src/game.hpp
+    src/main_window.cpp
+    src/main_window.hpp
+    src/models.cpp
+    src/models.hpp
+    src/save_store.cpp
+    src/save_store.hpp
+    src/utils.cpp
     src/utils.hpp
-    src/zip.hpp
     src/zip.cpp
+    src/zip.hpp
 )
 
 set(LIBS
@@ -91,5 +98,15 @@ if(WIN32)
     ${Qt6_ROOT}/bin/Qt6Sql.dll
     ${Qt6_ROOT}/bin/Qt6Widgets.dll
     $<TARGET_FILE_DIR:hello>
+  )
+endif()
+
+if(APPLE)
+  set_target_properties(hello PROPERTIES
+    BUNDLE True
+    MACOSX_BUNDLE_GUI_IDENTIFIER rocks.mws.save-manager
+    MACOSX_BUNDLE_BUNDLE_NAME save-manager
+    MACOSX_BUNDLE_BUNDLE_VERSION "0.1"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "0.1"
   )
 endif()
