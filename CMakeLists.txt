@@ -1,9 +1,16 @@
-# cmake -B build . && cmake --build build -j
+# Build instruction for Windows:
+#
+# cmake -B build . -DQt6_ROOT=D:/Qt/6.9.1/msvc2022_64
+# cmake --build build --config Release -j
+# cmake --install build --config Release --prefix build
+#
+# Run in build/dist
+
 cmake_minimum_required(VERSION 3.24)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-project(SaveManager)
+project(SimpleSaveManager)
 
 # For whatever reason, the C++ stdlib is broken on my Mac.
 #
@@ -50,8 +57,6 @@ set(MZ_BUILD_TESTS OFF)
 set(MZ_BUILD_UNIT_TESTS OFF)
 set(MZ_BUILD_FUZZ_TESTS OFF)
 set(MZ_CODE_COVERAGE OFF)
-
-set(C4CORE_WITH_FASTFLOAT OFF)
 
 FetchContent_MakeAvailable(minizip ryml)
 
@@ -114,6 +119,19 @@ if(WIN32)
     ${zlib_BINARY_DIR}/Release/zlib-ng2.dll
     $<TARGET_FILE_DIR:save-manager>
   )
+
+  install(TARGETS save-manager
+    EXPORT InstallTargets
+    DESTINATION dist
+  )
+  install(FILES
+    $<TARGET_RUNTIME_DLLS:save-manager>
+    ${CMAKE_SOURCE_DIR}/games.yaml
+    DESTINATION dist)
+  install(FILES ${Qt6_ROOT}/plugins/platforms/qwindows.dll
+    DESTINATION dist/platforms)
+  install(FILES ${Qt6_ROOT}/plugins/sqldrivers/qsqlite.dll
+    DESTINATION dist/sqldrivers)
 endif()
 
 if(APPLE)
