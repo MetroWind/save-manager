@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <exception>
 #include <iostream>
 
@@ -23,7 +25,9 @@ int main(int argc, char *argv[])
            QCoreApplication::startingUp())
         {
 #if _WIN32
-            MessageBox(0, e.what(), "Error", 0);
+            wchar_t szBuff[64];
+            mbstowcs(szBuff, e.what(), 64);
+            MessageBox(0, szBuff, L"Error", 0);
 #else
             std::cerr << "Error: " << e.what() << std::endl;
 #endif

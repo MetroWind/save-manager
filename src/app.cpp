@@ -43,7 +43,8 @@ void App::run(int argc, char *argv[])
         std::make_unique<SaveStoreFSSQlite>(data_dir.string());
     store = the_store.get();
 
-    model_stored_save = new StoredSaveModel(std::move(the_store), "test");
+    model_stored_save =
+        new StoredSaveModel(std::move(the_store), game->shortName());
     MainWindow window(*model_active_save, *model_stored_save);
     main_window = &window;
     window.setGameName(game->name().c_str());
@@ -84,7 +85,7 @@ void App::restoreFromStoredSave() const
     auto index = main_window->selectedStoredSave();
     if(!index.has_value()) return;
     StoredSave stored_save = store->listSaves(game->shortName())[*index];
-    store->loadSave(stored_save, game->getSaveDir().c_str());
+    store->loadSave(stored_save, game->getSaveDir().generic_string().c_str());
     model_active_save->reload();
     emit model_active_save->dataChanged(
         model_active_save->index(0, 0),

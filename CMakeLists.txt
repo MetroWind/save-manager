@@ -51,6 +51,8 @@ set(MZ_BUILD_UNIT_TESTS OFF)
 set(MZ_BUILD_FUZZ_TESTS OFF)
 set(MZ_CODE_COVERAGE OFF)
 
+set(C4CORE_WITH_FASTFLOAT OFF)
+
 FetchContent_MakeAvailable(minizip ryml)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
@@ -86,32 +88,36 @@ set(INCLUDES
   ${minizip_SOURCE_DIR}
 )
 
-qt_add_executable(hello ${SOURCE_FILES} src/main.cpp)
-message("$<CONFIG:Debug>")
-target_compile_definitions(hello PRIVATE "DEBUG=$<CONFIG:Debug>")
-set_property(TARGET hello PROPERTY CXX_STANDARD 23)
-set_property(TARGET hello PROPERTY COMPILE_WARNING_AS_ERROR TRUE)
-target_link_libraries(hello PRIVATE ${LIBS})
-target_include_directories(hello PRIVATE ${INCLUDES})
+qt_add_executable(save-manager ${SOURCE_FILES} src/main.cpp)
+target_compile_definitions(save-manager PRIVATE "DEBUG=$<CONFIG:Debug>")
+set_property(TARGET save-manager PROPERTY CXX_STANDARD 23)
+set_property(TARGET save-manager PROPERTY COMPILE_WARNING_AS_ERROR TRUE)
+target_link_libraries(save-manager PRIVATE ${LIBS})
+target_include_directories(save-manager PRIVATE ${INCLUDES})
 
 if(WIN32)
-  set_target_properties(hello PROPERTIES WIN32_EXECUTABLE ON)
-  add_custom_command(TARGET hello POST_BUILD
+  set_target_properties(save-manager PROPERTIES WIN32_EXECUTABLE ON)
+  add_custom_command(TARGET save-manager POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${Qt6_ROOT}/plugins/platforms/qwindows.dll
-    $<TARGET_FILE_DIR:hello>/platforms/qwindows.dll
+    $<TARGET_FILE_DIR:save-manager>/platforms/qwindows.dll
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${Qt6_ROOT}/plugins/sqldrivers/qsqlite.dll
+    $<TARGET_FILE_DIR:save-manager>/sqldrivers/qsqlite.dll
 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${Qt6_ROOT}/bin/Qt6Core.dll
     ${Qt6_ROOT}/bin/Qt6Gui.dll
     ${Qt6_ROOT}/bin/Qt6Sql.dll
     ${Qt6_ROOT}/bin/Qt6Widgets.dll
-    $<TARGET_FILE_DIR:hello>
+    ${zlib_BINARY_DIR}/Release/zlib-ng2.dll
+    $<TARGET_FILE_DIR:save-manager>
   )
 endif()
 
 if(APPLE)
-  set_target_properties(hello PROPERTIES
+  set_target_properties(save-manager PROPERTIES
     BUNDLE True
     MACOSX_BUNDLE_GUI_IDENTIFIER rocks.mws.save-manager
     MACOSX_BUNDLE_BUNDLE_NAME save-manager

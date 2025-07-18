@@ -1,5 +1,7 @@
 #include <format>
 
+#include <QtCore>
+
 #include "models.hpp"
 #include "game.hpp"
 #include "save_store.hpp"

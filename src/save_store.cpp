@@ -19,11 +19,17 @@ SaveStoreFSSQlite::SaveStoreFSSQlite(std::string_view datadir)
          data_dir(datadir)
 {
     namespace fs = std::filesystem;
-
-    db.setDatabaseName((fs::path(data_dir) / "data.db").c_str());
+    if(!db.isValid())
+    {
+        throw std::runtime_error("SQLite is not supported.");
+    }
+    db.setDatabaseName((fs::path(data_dir) / "data.db")
+                       .generic_string().c_str());
     if(!db.open())
     {
-        throw std::runtime_error("Failed to open database.");
+        throw std::runtime_error(
+            std::string("Failed to open database: ") +
+            db.lastError().text().toStdString());
     }
 
     QSqlQuery query(db);
@@ -54,13 +60,13 @@ StoredSave SaveStoreFSSQlite::storeSave(
         .toStdString() + ".zip";
     fs::path stored_file = data_dir / game.shortName() / basename;
     {
-        Zipper zipper(stored_file.c_str());
-        for(const std::string& f: save.files)
+        Zipper zipper(stored_file.generic_string().c_str());
+        for(const fs::path& f: save.files)
         {
             try
             {
-                zipper.addFile((game.getSaveDir() / f).c_str(),
-                               game.getSaveDir().c_str());
+                zipper.addFile((game.getSaveDir() / f).generic_string().c_str(),
+                               game.getSaveDir().generic_string().c_str());
             }
             catch(const std::runtime_error&)
             {
@@ -72,7 +78,8 @@ StoredSave SaveStoreFSSQlite::storeSave(
             }
         }
     }
-    auto save_time = fs::last_write_time(game.getSaveDir() / save.files[0]);
+    Time save_time = timeCast(fs::last_write_time(
+                                  game.getSaveDir() / save.files[0]));
     auto now = Clock::now();
     {
         QSqlQuery query(db);
@@ -82,7 +89,7 @@ StoredSave SaveStoreFSSQlite::storeSave(
         query.addBindValue(title.c_str());
         query.addBindValue(timeToSeconds(save_time));
         query.addBindValue(timeToSeconds(now));
-        query.addBindValue(basename.c_str());
+        query.addBindValue(basename.generic_string().c_str());
         query.addBindValue(game.shortName().c_str());
         bool result = query.exec();
         if(!result)
@@ -102,17 +109,17 @@ StoredSave SaveStoreFSSQlite::storeSave(
     }
     query.next();
     result.id = query.value(0).toInt();
-    result.file = stored_file;
-    result.time_save = secondsToTime(timeToSeconds(save_time));
-    result.time_add = now;
+    result.file = stored_file.generic_string();
+    result.time_save = std::move(save_time);
+    result.time_add = std::move(now);
     result.game_short_name = game.shortName();
     return result;
 }
 
 void SaveStoreFSSQlite::loadSave(const StoredSave& save, const char* into_dir)
 {
-    Unzipper::extract((data_dir / save.game_short_name / save.file).c_str(),
-                      into_dir);
+    Unzipper::extract((data_dir / save.game_short_name / save.file)
+                      .generic_string().c_str(), into_dir);
 }
 
 std::vector<StoredSave>

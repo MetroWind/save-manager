@@ -34,6 +34,12 @@ inline Time secondsToTime(const int64_t t)
     return Time(std::chrono::seconds(t));
 }
 
+template <typename T>
+inline Time timeCast(const T& t)
+{
+    return std::chrono::clock_cast<Clock, typename T::clock, Clock::duration>(t);
+}
+
 inline std::string timeToStr(const Time& t)
 {
     return std::format("{:%F %R}", t);

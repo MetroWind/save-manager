@@ -18,6 +18,7 @@ void msgBox(QMessageBox::Icon icon, const char* msg)
         msgBox.setText("Warning!");
         break;
     default:
+        break;
     }
     msgBox.setInformativeText(msg);
     msgBox.exec();

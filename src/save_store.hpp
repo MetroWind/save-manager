@@ -1,6 +1,5 @@
 #pragma once
 
-#include <arm_neon.h>
 #include <vector>
 #include <string>
 #include <string_view>

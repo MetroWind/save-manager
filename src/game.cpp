@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <utility>
 
 #include <ryml.hpp>
 #include <ryml_std.hpp>
@@ -54,8 +55,7 @@ std::vector<ActiveSave> GameWithSingleSave::saves() const
 {
     std::vector<ActiveSave> saves(1);
     saves[0].files = files;
-    saves[0].time = secondsToTime(timeToSeconds(
-        std::filesystem::last_write_time(save_dir / files[0])));
+    saves[0].time = timeCast(fs::last_write_time(save_dir / files[0]));
     return saves;
 }
 
@@ -67,6 +67,8 @@ GameInterface::createFromDefinition(const GameDefinition& def)
     case GameType::SINGLE_SAVE:
         return std::make_unique<GameWithSingleSave>(
             def.name, def.short_name, def.save_dir, def.files);
+    default:
+        std::unreachable();
     }
 }
 
