@@ -68,11 +68,14 @@ public:
     const LabeledListView& panelRight() const { return *panel_right; }
     const CenteredToolbar& midToolbar() const { return *mid_column; }
     const CenteredToolbar& rightToolbar() const { return *right_bar; }
+    QMenu& gamesMenu() { return *menu_games; }
     void setGameName(const char* name);
+    void setGameLabel(const char* name);
 
 private:
     LabeledListView* panel_left;
     LabeledListView* panel_right;
     CenteredToolbar* mid_column;
     CenteredToolbar* right_bar;
+    QMenu* menu_games;
 };

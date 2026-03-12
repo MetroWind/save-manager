@@ -56,7 +56,7 @@ private:
 class FirstDirFromGlob : public DirFinderInterface
 {
 public:
-    explicit FirstDirFromGlob(const std::string& p): patter(p) {}
+    explicit FirstDirFromGlob(const std::string& p): pattern(p) {}
     std::filesystem::path getDir() const override;
 
 private:

@@ -17,6 +17,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const override;
     void reload();
+    void setGame(std::unique_ptr<GameInterface> g);
 
 private:
     std::unique_ptr<GameInterface> game;
@@ -35,6 +36,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
     bool setData(const QModelIndex& index, const QVariant& value,
                  int role=Qt::EditRole) override;
+    void setGameShortName(std::string_view short_name);
 private:
     std::unique_ptr<SaveStoreInterface> store;
     std::string game_short_name;

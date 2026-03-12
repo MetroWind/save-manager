@@ -28,6 +28,7 @@ signals:
 private slots:
     void onMidToolbarBtnClick(QAction *action);
     void onRightToolbarBtnClick(QAction* action);
+    void onGameSelected();
 
 private:
     std::filesystem::path dataDir() const;
@@ -38,4 +39,5 @@ private:
     SaveStoreInterface* store = nullptr;
     ActiveSaveModel* model_active_save = nullptr;
     StoredSaveModel* model_stored_save = nullptr;
+    std::vector<GameDefinition> game_definitions;
 };

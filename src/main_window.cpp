@@ -144,6 +144,8 @@ MainWindow::MainWindow(QAbstractItemModel& active_save_model,
     setMinimumSize(640, 480);
     resize(1024, 768);
     setCentralWidget(main);
+
+    menu_games = menuBar()->addMenu("&Games");
 }
 
 std::optional<int> MainWindow::selectedActiveSave() const
@@ -169,4 +171,9 @@ std::optional<int> MainWindow::selectedStoredSave() const
 void MainWindow::setGameName(const char* name)
 {
     setWindowTitle(QString(name) + " Save Manager");
+}
+
+void MainWindow::setGameLabel(const char *name)
+{
+    panel_left->setLabel(name);
 }

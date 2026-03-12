@@ -27,7 +27,7 @@ include(FetchContent)
 FetchContent_Declare(
   minizip
   GIT_REPOSITORY https://github.com/zlib-ng/minizip-ng.git
-  GIT_TAG 4.0.10
+  GIT_TAG 4.1.0
 )
 FetchContent_Declare(
   ryml
@@ -57,12 +57,24 @@ set(MZ_BUILD_TESTS OFF)
 set(MZ_BUILD_UNIT_TESTS OFF)
 set(MZ_BUILD_FUZZ_TESTS OFF)
 set(MZ_CODE_COVERAGE OFF)
+set(SKIP_INSTALL_ALL ON)
 
 FetchContent_MakeAvailable(minizip ryml)
 
+# Qt6Gui requires Vulkan headers on some platforms.
+find_package(Vulkan QUIET)
+if(NOT Vulkan_FOUND AND NOT Vulkan_INCLUDE_DIR)
+  message(STATUS "Vulkan headers not found. Fetching from KhronosGroup.")
+  FetchContent_Declare(
+    VulkanHeaders
+    URL "https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/v1.3.268.tar.gz"
+  )
+  FetchContent_Populate(VulkanHeaders)
+  set(Vulkan_INCLUDE_DIR "${vulkanheaders_SOURCE_DIR}/include" CACHE PATH "Vulkan headers" FORCE)
+endif()
+
 find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
 qt_standard_project_setup()
-
 set(SOURCE_FILES
     src/app.cpp
     src/app.hpp

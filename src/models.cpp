@@ -18,6 +18,14 @@ void ActiveSaveModel::reload()
     saves = game->saves();
 }
 
+void ActiveSaveModel::setGame(std::unique_ptr<GameInterface> g)
+{
+    beginResetModel();
+    game = std::move(g);
+    reload();
+    endResetModel();
+}
+
 int ActiveSaveModel::rowCount([[maybe_unused]] const QModelIndex &parent) const
 {
     if(game == nullptr)
@@ -99,4 +107,11 @@ bool StoredSaveModel::setData(const QModelIndex &index,
         return true;
     }
     return false;
+}
+
+void StoredSaveModel::setGameShortName(std::string_view short_name)
+{
+    beginResetModel();
+    game_short_name = short_name;
+    endResetModel();
 }

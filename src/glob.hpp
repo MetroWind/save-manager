@@ -118,7 +118,7 @@ public:
         void find_next_match() {
             while (dir_iterator_ != std::filesystem::directory_iterator{}) {
                 const std::string filename = dir_iterator_->path().filename().string();
-                if (std::regexmatch(filename, *regex)) {
+                if (std::regex_match(filename, *regex)) {
                     break; // Found a match
                 }
                 ++dir_iterator_;
@@ -135,7 +135,6 @@ public:
      * @param pattern The glob pattern (e.g., "data/*.csv", "*.log").
      */
     explicit Glob(std::string_view pattern) {
-        if(pattern.end
         std::filesystem::path p(pattern);
 
         // Separate the directory path from the filename pattern

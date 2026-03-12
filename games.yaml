@@ -8,6 +8,6 @@ wo3u:
 elden-ring:
   type: single-save
   name: Elden Ring
-  save-dir: "%USERPROFILE%/AppData/Roaming/EldenRing"
+  save-dir: "%USERPROFILE%/AppData/Roaming/EldenRing/*"
   save-files:
     - "ER0000.sl2"

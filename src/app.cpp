@@ -28,9 +28,15 @@ void App::run(int argc, char *argv[])
         }
     }
 
+
+    game_definitions = GameDefinition::loadFromYAML(configPath());
+    if (game_definitions.empty())
+    {
+        throw std::runtime_error("No games defined in configuration.");
+    }
+
     std::unique_ptr<GameInterface> the_game =
-        GameInterface::createFromDefinition(
-            GameDefinition::loadFromYAML(configPath())[0]);
+        GameInterface::createFromDefinition(game_definitions[0]);
 
     if(the_game == nullptr)
     {
@@ -65,6 +71,17 @@ void App::run(int argc, char *argv[])
         &main_window->panelRight().listView(), SLOT(edit(const QModelIndex&)));
 
     window.show();
+
+    // Populate Games menu
+    for (size_t i = 0; i < game_definitions.size(); ++i)
+    {
+        QAction* action = window.gamesMenu().addAction(
+            game_definitions[i].name.c_str());
+        action->setData(static_cast<uint>(i));
+        QObject::connect(action, &QAction::triggered, this,
+                         &App::onGameSelected);
+    }
+
     app.exec();
 }
 
@@ -126,6 +143,29 @@ void App::onRightToolbarBtnClick(QAction* action)
     {
         deleteStoredSave();
     }
+}
+
+void App::onGameSelected()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if (!action) return;
+
+    size_t index = action->data().toUInt();
+    if (index >= game_definitions.size()) return;
+
+    const auto& def = game_definitions[index];
+
+    std::unique_ptr<GameInterface> new_game =
+        GameInterface::createFromDefinition(def);
+
+    if (new_game == nullptr) return;
+
+    game = new_game.get();
+    model_active_save->setGame(std::move(new_game));
+    model_stored_save->setGameShortName(game->shortName());
+
+    main_window->setGameName(game->name().c_str());
+    main_window->setGameLabel(game->name().c_str());
 }
 
 fs::path App::dataDir() const

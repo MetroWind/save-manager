@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
            QCoreApplication::startingUp())
         {
 #if _WIN32
-            wchar_t szBuff[64];
-            mbstowcs(szBuff, e.what(), 64);
+            wchar_t szBuff[1024];
+            mbstowcs(szBuff, e.what(), 1024);
             MessageBox(0, szBuff, L"Error", 0);
 #else
             std::cerr << "Error: " << e.what() << std::endl;
