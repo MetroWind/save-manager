@@ -9,5 +9,6 @@ elden-ring:
   type: single-save
   name: Elden Ring
   save-dir: "%USERPROFILE%/AppData/Roaming/EldenRing/*"
+  save-dir-type: first-from-glob
   save-files:
     - "ER0000.sl2"

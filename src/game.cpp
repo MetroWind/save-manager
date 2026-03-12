@@ -51,22 +51,30 @@ std::filesystem::path StaticDirFinder::getDir() const
 
 std::filesystem::path FirstDirFromGlob::getDir() const
 {
-    Glob g(pattern);
+    Glob g(expandPath(pattern));
     return g.begin()->path();
 }
 
 GameWithSingleSave::GameWithSingleSave(
     std::string_view name_, std::string_view short_name_,
-    std::string_view save_dir_, std::span<const std::string> files_)
-        : game_name(name_), short_name(short_name_), save_dir(save_dir_),
+    std::unique_ptr<DirFinderInterface> dir_finder_,
+    std::span<const std::string> files_)
+        : game_name(name_), short_name(short_name_),
+          dir_finder(std::move(dir_finder_)),
           files(std::begin(files_), std::end(files_))
 {
+}
+
+std::filesystem::path GameWithSingleSave::getSaveDir() const
+{
+    return dir_finder->getDir();
 }
 
 std::vector<ActiveSave> GameWithSingleSave::saves() const
 {
     std::vector<ActiveSave> saves(1);
     saves[0].files = files;
+    auto save_dir = getSaveDir();
     saves[0].time = timeCast(fs::last_write_time(save_dir / files[0]));
     return saves;
 }
@@ -74,11 +82,21 @@ std::vector<ActiveSave> GameWithSingleSave::saves() const
 std::unique_ptr<GameInterface>
 GameInterface::createFromDefinition(const GameDefinition& def)
 {
+    std::unique_ptr<DirFinderInterface> dir_finder;
+    if (def.save_dir_type == SaveDirType::FIRST_FROM_GLOB)
+    {
+        dir_finder = std::make_unique<FirstDirFromGlob>(def.save_dir);
+    }
+    else
+    {
+        dir_finder = std::make_unique<StaticDirFinder>(def.save_dir);
+    }
+
     switch(def.type)
     {
     case GameType::SINGLE_SAVE:
         return std::make_unique<GameWithSingleSave>(
-            def.name, def.short_name, def.save_dir, def.files);
+            def.name, def.short_name, std::move(dir_finder), def.files);
     default:
         std::unreachable();
     }
@@ -121,7 +139,21 @@ GameDefinition::loadFromYAML(const fs::path& filename)
         }
         std::string save_dir;
         child["save-dir"] >> save_dir;
-        game.save_dir = expandPath(save_dir);
+        game.save_dir = save_dir;
+
+        if (child["save-dir-type"].readable())
+        {
+            std::string sdt;
+            child["save-dir-type"] >> sdt;
+            if (sdt == "first-from-glob")
+            {
+                game.save_dir_type = SaveDirType::FIRST_FROM_GLOB;
+            }
+            else
+            {
+                game.save_dir_type = SaveDirType::STATIC;
+            }
+        }
 
         if(!child["save-files"].readable())
         {

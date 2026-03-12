@@ -24,6 +24,12 @@ enum class GameType
     SINGLE_SAVE,
 };
 
+enum class SaveDirType
+{
+    STATIC,
+    FIRST_FROM_GLOB,
+};
+
 struct GameDefinition
 {
     std::string name;
@@ -31,6 +37,7 @@ struct GameDefinition
     std::string save_dir;
     std::vector<std::string> files;
     GameType type;
+    SaveDirType save_dir_type = SaveDirType::STATIC;
 
     static std::vector<GameDefinition> loadFromYAML(
         const std::filesystem::path& filename);
@@ -87,19 +94,19 @@ class GameWithSingleSave : public GameInterface
 {
 public:
     GameWithSingleSave(std::string_view name, std::string_view short_name,
-                       std::string_view save_dir,
+                       std::unique_ptr<DirFinderInterface> dir_finder,
                        std::span<const std::string> files);
     ~GameWithSingleSave() override = default;
 
     const std::string& name() const override { return game_name; }
     const std::string& shortName() const override { return short_name; }
-    std::filesystem::path getSaveDir() const override { return save_dir; }
+    std::filesystem::path getSaveDir() const override;
     std::vector<ActiveSave> saves() const override;
     size_t saveCount() const override { return 1; }
 
 private:
     std::string game_name;
     std::string short_name;
-    std::filesystem::path save_dir;
+    std::unique_ptr<DirFinderInterface> dir_finder;
     std::vector<std::filesystem::path> files;
 };
