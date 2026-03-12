@@ -13,6 +13,7 @@
 #include "game.hpp"
 #include "c4/yml/node.hpp"
 #include "utils.hpp"
+#include "glob.hpp"
 
 namespace {
 
@@ -42,6 +43,17 @@ bool getYamlValue(ryml::ConstNodeRef node, T& result)
 }
 
 } // namespace
+
+std::filesystem::path StaticDirFinder::getDir() const
+{
+    return {expandPath(dir)};
+}
+
+std::filesystem::path FirstDirFromGlob::getDir() const
+{
+    Glob g(pattern);
+    return g.begin()->path();
+}
 
 GameWithSingleSave::GameWithSingleSave(
     std::string_view name_, std::string_view short_name_,

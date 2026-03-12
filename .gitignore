@@ -1,0 +1,12 @@
+# Build directory
+build/
+
+# Build artifacts
+*.exe
+*.log
+
+# IDE and system files
+.vs/
+out/
+CMakeSettings.json
+*.user

@@ -70,6 +70,7 @@ set(SOURCE_FILES
     src/data.hpp
     src/game.cpp
     src/game.hpp
+    src/glob.hpp
     src/main_window.cpp
     src/main_window.hpp
     src/models.cpp

@@ -36,6 +36,33 @@ struct GameDefinition
         const std::filesystem::path& filename);
 };
 
+class DirFinderInterface
+{
+public:
+    // TODO: this should return an optional.
+    virtual std::filesystem::path getDir() const = 0;
+};
+
+class StaticDirFinder : public DirFinderInterface
+{
+public:
+    explicit StaticDirFinder(const std::string& d): dir(d) {}
+    std::filesystem::path getDir() const override;
+
+private:
+    std::string dir;
+};
+
+class FirstDirFromGlob : public DirFinderInterface
+{
+public:
+    explicit FirstDirFromGlob(const std::string& p): patter(p) {}
+    std::filesystem::path getDir() const override;
+
+private:
+    std::string pattern;
+};
+
 class GameInterface
 {
 public:

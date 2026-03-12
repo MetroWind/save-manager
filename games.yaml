@@ -4,3 +4,10 @@ wo3u:
   save-dir: "%USERPROFILE%/Documents/KoeiTecmo/WARRIORS OROCHI 3 Ultimate/SAVEDATA"
   save-files:
     - SAVEDATA.BIN
+
+elden-ring:
+  type: single-save
+  name: Elden Ring
+  save-dir: "%USERPROFILE%/AppData/Roaming/EldenRing"
+  save-files:
+    - "ER0000.sl2"
